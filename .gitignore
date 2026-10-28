@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.vercel/
+# real client data never goes into the repository
+*.csv
+*.pdf
+*.xlsx

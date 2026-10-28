@@ -1,0 +1,24 @@
+{
+  "name": "pbfdoc",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bolt rēķinu (CSV un PDF) kopsavilkums pa nedēļām ar Excel failu",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "cli": "node cli/bolt-kopsavilkums.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "exceljs": "4.4.0",
+    "pdfjs-dist": "3.11.174"
+  },
+  "devDependencies": {
+    "vite": "5.4.11"
+  }
+}

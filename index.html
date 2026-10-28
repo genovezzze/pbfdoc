@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="lv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Bolt rēķinu (CSV un PDF) kopsavilkums pa nedēļām ar Excel failu">
+  <title>Bolt rēķinu kopsavilkums</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">BOLT darījumu kopsavilkums</div>
+    <h1>Bolt rēķinu kopsavilkums pa nedēļām</h1>
+    <p class="muted">Ielādējiet Bolt „Klientu rēķini” CSV par mēnesi un, ja ir, brauciena rēķinu PDF. Lapa sadala rēķinus pa nedēļām, izdala lidostas maksu bez PVN, aprēķina komisiju un sagatavo Excel failu. Faili tiek apstrādāti tikai jūsu pārlūkā un netiek nekur nosūtīti.</p>
+  </header>
+
+  <label class="drop" id="drop" tabindex="0">
+    <input type="file" id="pick" multiple accept=".csv,.txt,.pdf,text/csv,application/pdf">
+    <strong>Ievelciet failus šeit vai noklikšķiniet, lai izvēlētos</strong>
+    <div class="kinds"><span><b>CSV</b> no Bolt, viens vai vairāki mēneši</span><span><b>PDF</b> brauciena rēķini, cik vien vajag</span></div>
+  </label>
+
+  <div class="bar">
+    <label for="rate">Bolt komisija <input type="number" id="rate" value="25" min="0" max="100" step="0.5"> % + PVN 21%</label>
+    <button class="ghost" id="clear" type="button">Notīrīt</button>
+    <div class="files" id="files"></div>
+  </div>
+  <div class="status" id="status"></div>
+
+  <div class="legend">
+    <span><span class="sw" style="background:var(--manual)"></span>no PDF vai jāieraksta ar roku</span>
+    <span><span class="sw" style="background:var(--estimate)"></span>komisija aprēķināta, jāsalīdzina ar EDS</span>
+  </div>
+
+  <div id="months"></div>
+  <div id="review"></div>
+
+  <section class="how">
+    <h2>Kā tas strādā</h2>
+    <ol>
+      <li>No CSV tiek ņemts rēķina numurs, datums, adrese, maksājuma veids, summa bez PVN, PVN un kopsumma.</li>
+      <li>Ja PVN nav 21% no visas summas, starpība ir neapliekamā daļa (lidostas maksa ap 2 EUR). Tā tiek ierakstīta kolonnā „Neapl. D.”, lai PVN sakristu.</li>
+      <li>Nedēļa ir no pirmdienas līdz svētdienai. Nedēļa mēneša sākumā vai beigās satur tikai šī mēneša dienas, pārējās dienas būs nākamā mēneša failā.</li>
+      <li>No PDF tiek nolasīta dzeramnauda, atgriešana un samaksa no Bolt konta, un tās tiek pievienotas rēķinam pēc numura. Ja par rēķinu nav CSV, tas tiek izveidots tikai no PDF (avots „PDF”). Rindas, kuras lapa neatpazīst, parādās sarakstā „Jāpārbauda” un Excel lapā „Pārbaudīt”.</li>
+      <li>Excel failā katrai nedēļai ir sava lapa, kā jūsu veidnē, un lapā „Visi rēķini” ir visa informācija par katru rēķinu: saņēmējs, reģistrācijas un PVN numuri, brauciena laiks.</li>
+      <li>Komisija = (summa bez PVN + PVN) × komisijas % × 1,21. Lidostas maksai komisija netiek rēķināta.</li>
+      <li>CSV nedrīkst atvērt un saglabāt Excel pirms ielādes: Excel sabojā latviešu burtus. Ielādējiet failu tieši no Bolt.</li>
+    </ol>
+  </section>
+</div>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
