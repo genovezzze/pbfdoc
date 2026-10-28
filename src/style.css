@@ -95,23 +95,20 @@ tfoot td { font-weight: 600; background: var(--hover); border-top: 1px solid var
 td.manual { background: var(--manual); }
 td.estimate { background: var(--estimate); }
 .zero { color: var(--muted); }
-.weeks { display: grid; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
-details.rows + details.rows { border-top: 1px solid var(--line); }
-details.rows summary { cursor: pointer; font-size: 0.9rem; padding: 11px 14px; list-style: none; display: flex; justify-content: space-between; }
-details.rows summary::-webkit-details-marker { display: none; }
-details.rows summary .count { margin-left: auto; margin-right: 10px; }
-details.rows summary::after { content: "›"; color: var(--muted); font-size: 1.2rem; line-height: 1; transition: transform .15s; }
-details.rows[open] summary::after { transform: rotate(90deg); }
-details.rows summary:hover { background: var(--hover); }
-details.rows summary:focus-visible { outline: 2px solid var(--muted); outline-offset: -2px; }
-details.rows .tbl { margin: 0 10px 10px; max-height: 70vh; overflow: auto; }
-details.rows table { font-size: 0.8rem; }
-details.rows th { position: sticky; top: 0; z-index: 1; }
-details.rows td.tx, details.rows th.tx { text-align: left; font-weight: 400; }
-details.rows th.tx { font-weight: 500; }
-details.rows td:first-child { font-weight: 400; color: var(--muted); }
-details.rows td.addr { white-space: normal; min-width: 220px; }
-
+.month h3 { font-size: 1rem; font-weight: 600; }
+.seg { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--hover); border: 1px solid var(--line); border-radius: 12px; width: fit-content; max-width: 100%; }
+.seg button { border: 0; background: transparent; color: var(--ink); border-radius: 9px; padding: 6px 12px; font-size: 0.85rem; font-weight: 500; }
+.seg button span { color: var(--muted); font-weight: 400; margin-left: 4px; }
+.seg button[aria-selected="true"] { background: var(--surface); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.seg button:focus-visible { outline: 2px solid var(--muted); outline-offset: 1px; }
+.invoices { max-height: 75vh; overflow: auto; }
+.invoices table { font-size: 0.82rem; }
+.invoices th { position: sticky; top: 0; z-index: 1; white-space: normal; min-width: 64px; vertical-align: bottom; }
+.invoices tfoot td { position: sticky; bottom: 0; }
+.invoices td.tx, .invoices th.tx { text-align: left; }
+.invoices td:first-child { font-weight: 400; color: var(--muted); }
+.invoices td.doc { font-family: var(--f-mono); font-size: 0.78rem; }
+.invoices td.addr { white-space: normal; min-width: 220px; }
 .review { display: grid; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 18px 20px; }
 .review li { font-size: 0.88rem; }
 .review ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }

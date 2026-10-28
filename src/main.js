@@ -18,6 +18,7 @@ const rate = () => (parseFloat($("rate").value) || 0) / 100;
 const ws = new Workspace(pdfjs);
 let sample = true;
 let months = [];
+const selected = new Map();   // year*100+month → chosen week index, -1 = whole month
 
 function render() {
   months = buildMonths(ws.invoices, ws.pdf, rate());
@@ -30,6 +31,11 @@ function render() {
 
   $("months").innerHTML = months.map(monthCard).join("") || `<p class="muted">Vēl nav ielādēts neviens fails.</p>`;
   document.querySelectorAll("[data-dl]").forEach(b => b.onclick = () => download(months[+b.dataset.dl], b));
+  document.querySelectorAll("[data-seg]").forEach(b => b.onclick = () => {
+    const [mi, wi] = b.dataset.seg.split(":").map(Number);
+    selected.set(months[mi].year * 100 + months[mi].month, wi);
+    render();
+  });
 
   const items = ws.review.concat(months.flatMap(M => M.gaps.length
     ? [{ inv: "—", src: `${MONTHS[M.month - 1]} ${M.year}`, why: "Trūkst rēķinu numuru secībā (trūkst CSV rindas vai PDF)", text: M.gaps.join(", ") }] : []));
@@ -55,13 +61,24 @@ function monthCard(M, mi) {
   ].join("");
   const weekRows = M.weeks.map(w => `<tr><td>${w.num}. ned.</td><td>${dm(w.from)}–${dm(w.to)}</td><td>${w.n}</td>${cell(w.E)}${cell(w.H)}${cell(w.I)}` +
     `${cell(w.J, "manual")}${cell(w.K, "manual")}${cell(w.L)}${cell(w.M + w.N, "manual")}${cell(w.O)}${cell(w.Q, "estimate")}</tr>`).join("");
-  const detail = w => `<details class="rows"><summary><span>${w.num}. nedēļa · ${dm(w.from)}–${dm(w.to)}</span><span class="muted count">${w.n} rēķini</span></summary><div class="tbl"><table>
-    <thead><tr><th>Nr.</th><th class="tx">Darījuma datums</th><th class="tx">Dokumenta Nr. no sistēmas</th><th class="tx">Darījuma vieta</th><th>Kopsumma</th><th class="tx">Maksājums</th><th class="tx">Avots</th>
-    <th>Bez PVN</th><th>PVN 21%</th><th>Dzeramn.</th><th>Bolt konts</th><th>Neapl. D.</th><th>Atgr. bez PVN</th><th>Atgr. PVN</th><th>Kopā</th><th>Komisija</th></tr></thead>
-    <tbody>${w.rows.map((x, i) => `<tr><td>${i + 1}</td><td class="tx">${dt(x.date)}</td><td class="tx">${esc(x.inv)}</td><td class="tx addr">${esc(x.addr)}</td>` +
+  // the invoice list in the template's own columns, one week at a time (tabs) or the whole month
+  let sel = selected.get(M.year * 100 + M.month) ?? 0;
+  if (sel >= M.weeks.length) sel = 0;
+  const shown = sel === -1 ? M.rows : M.weeks[sel].rows;
+  const shownSum = sel === -1 ? M : M.weeks[sel];
+  const tabs = `<div class="seg" role="tablist">${M.weeks.map((w, wi) =>
+    `<button type="button" role="tab" aria-selected="${wi === sel}" data-seg="${mi}:${wi}">${w.num}. ned. <span>${dm(w.from)}–${dm(w.to)}</span></button>`).join("")}` +
+    `<button type="button" role="tab" aria-selected="${sel === -1}" data-seg="${mi}:-1">Viss mēnesis</button></div>`;
+  const invoices = `<div class="tbl invoices"><table>
+    <thead><tr><th>Nr.p.k.</th><th class="tx">Darījuma datums</th><th class="tx">Dokumenta Nr. no sistēmas</th><th class="tx">Darījuma vieta</th><th>Darījuma kopsumma</th>
+    <th class="tx">Maksājuma veids</th><th class="tx">Avots</th><th>Summa bez PVN</th><th>PVN 21%</th><th>Dzēram-nauda</th><th>Bolt konts</th><th>Neapl. D.</th>
+    <th>Atgrieš. bez PVN</th><th>Atgrieš. PVN 21%</th><th>Kopā</th><th>Komisiju kopsumma</th></tr></thead>
+    <tbody>${shown.map((x, i) => `<tr><td>${i + 1}</td><td class="tx">${dt(x.date)}</td><td class="tx doc">${esc(x.inv)}</td><td class="tx addr">${esc(x.addr)}</td>` +
       `${dash(x.total)}<td class="tx">${esc(x.pay)}</td><td class="tx">${x.srcLabel}</td>${dash(x.taxable)}${dash(x.vat)}${dash(x.J, "manual")}${dash(x.K, "manual")}` +
       `${dash(x.L)}${dash(x.M, "manual")}${dash(x.N, "manual")}${dash(x.O)}${dash(x.Q, "estimate")}</tr>`).join("")}</tbody>
-    </table></div></details>`;
+    <tfoot><tr><td>Kopā</td><td></td><td class="tx">${shown.length} rēķini</td><td></td>${cell(shownSum.E)}<td></td><td></td>${cell(shownSum.H)}${cell(shownSum.I)}` +
+      `${cell(shownSum.J)}${cell(shownSum.K)}${cell(shownSum.L)}${cell(shownSum.M)}${cell(shownSum.N)}${cell(shownSum.O)}${cell(shownSum.Q)}</tr></tfoot>
+  </table></div>`;
   return `<section class="month">
     <div class="month-head">
       <div class="left"><div class="eyebrow">${esc(M.company)}</div>
@@ -82,7 +99,9 @@ function monthCard(M, mi) {
       <tbody>${weekRows}</tbody>
       <tfoot><tr><td>Mēnesī</td><td></td><td>${M.n}</td>${cell(M.E)}${cell(M.H)}${cell(M.I)}${cell(M.J)}${cell(M.K)}${cell(M.L)}${cell(M.M + M.N)}${cell(M.O)}${cell(M.Q)}</tr></tfoot>
     </table></div>
-    <div class="weeks">${M.weeks.map(detail).join("")}</div>
+    <h3>Rēķini</h3>
+    ${tabs}
+    ${invoices}
     <div class="status" id="dlst${mi}"></div>
   </section>`;
 }
