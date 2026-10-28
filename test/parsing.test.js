@@ -78,3 +78,19 @@ test("workbook has the summary, one sheet per week and the full list", async () 
   assert.equal(w.getCell("L11").value, 1.99);
   assert.equal(wb.getWorksheet("Visi rēķini").rowCount, 4);
 });
+
+test("Excel 'ANSI' (Windows-1251) CSV: Cyrillic decoded, lost Latvian letters rebuilt", async () => {
+  const { Workspace } = await import("../src/lib/workspace.js");
+  const text = ["Rēķina numurs\tDatums\tAdrese\tVeids\tLaiks\tSaņēmējs\ta\tb\tc\tUzņ\tadr\treg\tpvn\tneto\tpvn\tkopā",
+    ...[1, 2, 3, 4, 5, 6].map(n => `X-LV1-${n}\t0${n}.04.2026 10:00\t"Bru?inieku Iela 48, Рига LV-1011"\tBolt maks?jums\t0${n}.04.2026 09:50\tKlients\t\t\t\tParaugs SIA\t"R?ga"\t1\tLV1\t3.31\t0.69\t4`)
+  ].join("\r\n").replace(/ē|ķ|ņ|ā/g, "?");
+  // encode as Windows-1251 the way Excel would: Cyrillic kept, Latvian letters already "?"
+  const map = { "Р": 0xD0, "и": 0xE8, "г": 0xE3, "а": 0xE0 };
+  const bytes = Uint8Array.from([...text].map(ch => map[ch] ?? ch.charCodeAt(0)));
+  const ws = new Workspace(null);
+  await ws.add("aprilis.csv", bytes);
+  const r = ws.invoices.get("X-LV1-1");
+  assert.equal(r.addr, "Bruņinieku Iela 48, Рига LV-1011");
+  assert.equal(r.caddr, "Rīga");
+  assert.match(ws.files[0].note, /atjaunoti/);
+});

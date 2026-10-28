@@ -4,12 +4,22 @@ export const VAT = 0.21;
 export const DT = /^\d\d\.\d\d\.\d{4} \d\d:\d\d$/;
 export const r2 = x => Math.round((x + (x >= 0 ? 1e-9 : -1e-9)) * 100) / 100;
 
-/** Bytes → text. Bolt exports UTF-8; a file re-saved by Excel is Windows-1257 ("ANSI"). */
+/**
+ * Bytes → text. Bolt exports UTF-8; a file re-saved by Excel is in the Windows "ANSI" code page:
+ * Windows-1251 on a Russian system (keeps Cyrillic, loses Latvian letters) or Windows-1257 on a Baltic one.
+ * Pick the one whose decoding reads as real words.
+ */
 export function decode(bytes) {
   try {
-    return { text: new TextDecoder("utf-8", { fatal: true }).decode(bytes).replace(/^\uFEFF/, ""), ansi: false };
+    return { text: new TextDecoder("utf-8", { fatal: true }).decode(bytes).replace(/^\uFEFF/, ""), ansi: false, encoding: "utf-8" };
   } catch {
-    return { text: new TextDecoder("windows-1257").decode(bytes), ansi: true };
+    const cyr = new TextDecoder("windows-1251").decode(bytes);
+    const bal = new TextDecoder("windows-1257").decode(bytes);
+    const cyrWords = (cyr.match(/[А-Яа-яЁё]{3,}/g) || []).length;
+    const lvWords = (bal.match(/[A-Za-z][āēīūčšžņļķģ][a-z]/g) || []).length;
+    return cyrWords > lvWords
+      ? { text: cyr, ansi: true, encoding: "windows-1251" }
+      : { text: bal, ansi: true, encoding: "windows-1257" };
   }
 }
 
